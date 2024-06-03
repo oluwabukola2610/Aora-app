@@ -1,37 +1,73 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import React from "react";
+import { Tabs } from "expo-router";
+import { icons } from "@/constants";
+import { Image, Text, View } from "react-native";
 
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+const TabsLayout = () => {
+  const screenOptions: {
+    [key: string]: { title: string; headerShown: boolean };
+  } = {
+    home: {
+      title: "Home",
+      headerShown: false,
+    },
+    create: {
+      title: "Create",
+      headerShown: false,
+    },
+    bookmark: {
+      title: "Bookmark",
+      headerShown: false,
+    },
+    profile: {
+      title: "Profile",
+      headerShown: false,
+    },
+  };
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
-          ),
+    <>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: "#FFA001",
+          tabBarInactiveTintColor: "#CDCDE0",
+          tabBarShowLabel: false,
+          tabBarStyle: {
+            backgroundColor: "#161622",
+            borderTopWidth: 1,
+            borderTopColor: "#232533",
+          },
         }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'code-slash' : 'code-slash-outline'} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+      >
+        {Object.keys(screenOptions).map((screenName) => (
+          <Tabs.Screen
+            key={screenName}
+            name={screenName}
+            options={{
+              ...screenOptions[screenName],
+              tabBarIcon: ({ color, focused }) => (
+                <View className="items-center justify-center gap-2">
+                  <Image
+                    source={icons[screenName]}
+                    resizeMode="contain"
+                    tintColor={color}
+                    className="w-6 h-6"
+                  />
+                  <Text
+                    className={`${
+                      focused ? "font-psemibold " : " font-pregular"
+                    } text-xs `}
+                    style={{ color: color }}
+                  >
+                    {screenOptions[screenName].title}{" "}
+                  </Text>
+                </View>
+              ),
+            }}
+          />
+        ))}
+      </Tabs>
+    </>
   );
-}
+};
+
+export default TabsLayout;

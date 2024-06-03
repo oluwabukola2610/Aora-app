@@ -12,6 +12,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
+    "app.d.ts",
     "expo-env.d.ts"
-  ]
+, "constants/icons.ts", "constants/images.ts"  ]
 }
