@@ -1,8 +1,6 @@
-import {
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity } from "react-native";
+import React from "react";
+
 interface CustomButtonProps {
   title: string;
   handlePress?: () => void;
@@ -10,6 +8,7 @@ interface CustomButtonProps {
   textStyles?: string;
   isLoading?: boolean;
 }
+
 const CustomButton: React.FC<CustomButtonProps> = ({
   title,
   handlePress,
@@ -29,7 +28,6 @@ const CustomButton: React.FC<CustomButtonProps> = ({
       <Text className={`text-primary font-psemibold text-lg ${textStyles}`}>
         {title}
       </Text>
-
       {isLoading && (
         <ActivityIndicator
           animating={isLoading}
