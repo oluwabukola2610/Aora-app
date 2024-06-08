@@ -1,10 +1,11 @@
-import { View, Text, ScrollView, Image, Dimensions } from "react-native";
+import { View, Text, ScrollView, Image, Dimensions, Alert } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "@/constants";
 import CustomInput from "@/components/customs/CustomInput";
 import CustomButton from "@/components/customs/CustomButton";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
+import { LoginUser } from "@/components/helper/Appwrite";
 
 export default function SignIn() {
   const [formData, setFormData] = useState({
@@ -12,7 +13,25 @@ export default function SignIn() {
     password: "",
   });
   const [isSubmitting, setSubmitting] = useState(false);
-  const handlesubmit = () => {};
+  const handlesubmit = () => {
+    if (!formData.email || !formData.password) {
+      Alert.alert("Error", "please fill all required fields");
+    }
+    setSubmitting(true);
+    LoginUser(formData.email, formData.password)
+      .then(() => {
+        router.replace("home");
+      })
+      .catch((error) => {
+        Alert.alert(
+          "Error",
+          error.message || "Failed to sign in. Please try again."
+        );
+      })
+      .finally(() => {
+        setSubmitting(false);
+      });
+  };
   return (
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>

@@ -1,18 +1,45 @@
-import { View, Text, ScrollView, Image, Dimensions } from "react-native";
+import { View, Text, ScrollView, Image, Dimensions, Alert } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "@/constants";
 import CustomInput from "@/components/customs/CustomInput";
 import CustomButton from "@/components/customs/CustomButton";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
+import { createUser } from "@/components/helper/Appwrite";
+import { validatePassword } from "@/components/helper/PasswordScheme";
 
 export default function Signup() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    username: "",
   });
   const [isSubmitting, setSubmitting] = useState(false);
-  const handlesubmit = () => {};
+  const [passwordError, setPasswordError] = useState("");
+
+  const handlePasswordChange = (e: any) => {
+    setFormData({ ...formData, password: e });
+    if (passwordError) {
+      setPasswordError("");
+    }
+  };
+  const handlesubmit = () => {
+    if (!formData.email || !formData.password || !formData.username) {
+      Alert.alert("Error", "please fill all required fields");
+    }
+    if (!validatePassword(formData.password)) {
+      setPasswordError(
+        "Password must contain at least 8 characters, including one uppercase letter, one lowercase letter, one number, and one special character."
+      );
+      return;
+    }
+    setSubmitting(true);
+    createUser(formData.email, formData.password, formData.username)
+      .then(() => {
+        router.replace("home");
+      })
+      .finally(() => setSubmitting(false));
+  };
   return (
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>
@@ -32,9 +59,8 @@ export default function Signup() {
           </Text>
           <CustomInput
             title="Username"
-            value={formData.email}
-            handlechange={(e: any) => setFormData({ ...formData, email: e })}
-            keyboardType="email-address"
+            value={formData.username}
+            handlechange={(e: any) => setFormData({ ...formData, username: e })}
             otherstyles="mt-7"
             placeholder="Your unique username"
           />
@@ -43,16 +69,19 @@ export default function Signup() {
             value={formData.email}
             handlechange={(e: any) => setFormData({ ...formData, email: e })}
             keyboardType="email-address"
-            otherstyles="mt-7"
+            otherstyles="mt-7 "
             placeholder="@yourmail.com"
           />
           <CustomInput
             title="Password"
             value={formData.password}
-            handlechange={(e: any) => setFormData({ ...formData, password: e })}
+            handlechange={handlePasswordChange}
             otherstyles="mt-7"
             placeholder="Your secure password"
           />
+          <View>
+            <Text className="text-red-500 text-sm">{passwordError}</Text>
+          </View>
           <CustomButton
             title="Sign up"
             handlePress={handlesubmit}

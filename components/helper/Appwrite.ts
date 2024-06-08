@@ -1,122 +1,144 @@
-// import {
-//     Account,
-//     Avatars,
-//     Client,
-//     Databases,
-//     ID,
-//     Query,
-//     Storage,
-//   } from "react-native-appwrite";
+import { Alert } from "react-native";
+import {
+  Account,
+  Avatars,
+  Client,
+  Databases,
+  ID,
+  Query,
+  Storage,
+} from "react-native-appwrite";
 
 export const appwriteConfig = {
   endpoint: "https://cloud.appwrite.io/v1",
   platform: "com.aora.mobile",
   projectId: "66604f62001bddf96eb7",
-  //   storageId: "660d0e59e293896f1eaf",
-  //   databaseId: "660d14b2b809e838959a",
-  //   userCollectionId: "660d14c0e8ae0ea842b8",
-  //   videoCollectionId: "660d157fcb8675efe308",
+  databaseId: "66617dab0030050730aa",
+  userCollectionId: "66617dfb0027b29e0541",
+  videoCollectionId: "66617e4a0001c4ec4b1e",
+  storageId: "66618690000d225abb9e",
 };
 
-//   const client = new Client();
+const client = new Client();
 
-//   client
-//     .setEndpoint(appwriteConfig.endpoint)
-//     .setProject(appwriteConfig.projectId)
-//     .setPlatform(appwriteConfig.platform);
+client
+  .setEndpoint(appwriteConfig.endpoint)
+  .setProject(appwriteConfig.projectId)
+  .setPlatform(appwriteConfig.platform);
 
-//   const account = new Account(client);
-//   const storage = new Storage(client);
-//   const avatars = new Avatars(client);
-//   const databases = new Databases(client);
+const account = new Account(client);
+const storage = new Storage(client);
+const avatars = new Avatars(client);
+const databases = new Databases(client);
 
-//   // Register user
-//   export async function createUser(email, password, username) {
-//     try {
-//       const newAccount = await account.create(
-//         ID.unique(),
-//         email,
-//         password,
-//         username
-//       );
+// Register user
+export async function createUser(
+  email: string,
+  password: string,
+  username: string | undefined
+) {
+  try {
+    const newAccount = await account.create(
+      ID.unique(),
+      email,
+      password,
+      username
+    );
+    if (!newAccount) throw new Error("Account creation failed");
 
-//       if (!newAccount) throw Error;
+    const avatarUrl = avatars.getInitials(username);
 
-//       const avatarUrl = avatars.getInitials(username);
+    await LoginUser(email, password);
 
-//       await signIn(email, password);
+    // Create a user document in the database
+    const newUser = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      ID.unique(),
+      {
+        accountId: newAccount.$id,
+        email: email,
+        username: username,
+        avatar: avatarUrl,
+      }
+    );
+    return newUser;
+  } catch (error) {
+    console.error("Error creating user:", error);
+    Alert.alert("Error", `Failed to create user`);
+  }
+}
 
-//       const newUser = await databases.createDocument(
-//         appwriteConfig.databaseId,
-//         appwriteConfig.userCollectionId,
-//         ID.unique(),
-//         {
-//           accountId: newAccount.$id,
-//           email: email,
-//           username: username,
-//           avatar: avatarUrl,
-//         }
-//       );
+// Logout active session
+export const logoutSession = async () => {
+  try {
+    await account.deleteSession("current");
+  } catch (error) {
+    console.error("Error logging out:", error);
+  }
+};
+// login user
+export async function LoginUser(email: string, password: string) {
+  try {
+    const session = await account.getSession("current").catch(() => null);
+    if (session) {
+      await logoutSession();
+    }
+    const newSession = await account.createEmailPasswordSession(
+      email,
+      password
+    );
+    await getCurrentUser();
+    return newSession;
+  } catch (error) {
+    console.error("Error signing in:", error);
+    throw new Error("Failed to sign in. Please try again.");
+  }
+}
 
-//       return newUser;
-//     } catch (error) {
-//       throw new Error(error);
-//     }
-//   }
+// Get Current User
+export async function getCurrentUser() {
+  try {
+    const currentAccount = await account.get();
+    if (!currentAccount) throw Error;
 
-//   // Sign In
-//   export async function signIn(email, password) {
-//     try {
-//       const session = await account.createEmailSession(email, password);
+    const currentUser = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      [Query.equal("accountId", currentAccount.$id)]
+    );
 
-//       return session;
-//     } catch (error) {
-//       throw new Error(error);
-//     }
-//   }
-
-//   // Get Account
-//   export async function getAccount() {
-//     try {
-//       const currentAccount = await account.get();
-
-//       return currentAccount;
-//     } catch (error) {
-//       throw new Error(error);
-//     }
-//   }
-
-//   // Get Current User
-//   export async function getCurrentUser() {
-//     try {
-//       const currentAccount = await getAccount();
-//       if (!currentAccount) throw Error;
-
-//       const currentUser = await databases.listDocuments(
-//         appwriteConfig.databaseId,
-//         appwriteConfig.userCollectionId,
-//         [Query.equal("accountId", currentAccount.$id)]
-//       );
-
-//       if (!currentUser) throw Error;
-
-//       return currentUser.documents[0];
-//     } catch (error) {
-//       console.log(error);
-//       return null;
-//     }
-//   }
-
-//   // Sign Out
-//   export async function signOut() {
-//     try {
-//       const session = await account.deleteSession("current");
-
-//       return session;
-//     } catch (error) {
-//       throw new Error(error);
-//     }
-//   }
+    return currentUser.documents[0];
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
+// Get all video Posts
+export async function getAllPosts() {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId
+    );
+    return posts.documents;
+  } catch (error) {
+    console.log(error);
+  }
+}
+//   // Get latest created video posts
+export async function getLatestPosts() {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId,
+      [Query.orderDesc("$createdAt"), Query.limit(7)]
+    );
+    return posts.documents;
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 //   // Upload File
 //   export async function uploadFile(file, type) {
@@ -194,20 +216,6 @@ export const appwriteConfig = {
 //     }
 //   }
 
-//   // Get all video Posts
-//   export async function getAllPosts() {
-//     try {
-//       const posts = await databases.listDocuments(
-//         appwriteConfig.databaseId,
-//         appwriteConfig.videoCollectionId
-//       );
-
-//       return posts.documents;
-//     } catch (error) {
-//       throw new Error(error);
-//     }
-//   }
-
 //   // Get video posts created by user
 //   export async function getUserPosts(userId) {
 //     try {
@@ -233,21 +241,6 @@ export const appwriteConfig = {
 //       );
 
 //       if (!posts) throw new Error("Something went wrong");
-
-//       return posts.documents;
-//     } catch (error) {
-//       throw new Error(error);
-//     }
-//   }
-
-//   // Get latest created video posts
-//   export async function getLatestPosts() {
-//     try {
-//       const posts = await databases.listDocuments(
-//         appwriteConfig.databaseId,
-//         appwriteConfig.videoCollectionId,
-//         [Query.orderDesc("$createdAt"), Query.limit(7)]
-//       );
 
 //       return posts.documents;
 //     } catch (error) {
