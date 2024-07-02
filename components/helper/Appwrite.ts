@@ -5,7 +5,9 @@ import {
   Client,
   Databases,
   ID,
+  Models,
   Query,
+  QueryTypesList,
   Storage,
 } from "react-native-appwrite";
 
@@ -141,109 +143,120 @@ export async function getLatestPosts() {
 }
 
 //   // Upload File
-//   export async function uploadFile(file, type) {
-//     if (!file) return;
+export async function uploadFile(file: any, type: any) {
+  if (!file) return;
 
-//     const { mimeType, ...rest } = file;
-//     const asset = { type: mimeType, ...rest };
+  const { mimeType, ...rest } = file;
+  const asset = { type: mimeType, ...rest };
 
-//     try {
-//       const uploadedFile = await storage.createFile(
-//         appwriteConfig.storageId,
-//         ID.unique(),
-//         asset
-//       );
+  try {
+    const uploadedFile = await storage.createFile(
+      appwriteConfig.storageId,
+      ID.unique(),
+      asset
+    );
 
-//       const fileUrl = await getFilePreview(uploadedFile.$id, type);
-//       return fileUrl;
-//     } catch (error) {
-//       throw new Error(error);
-//     }
-//   }
+    const fileUrl = await getFilePreview(uploadedFile.$id, type);
+    return fileUrl;
+  } catch (error) {
+    console.log(error);
+  }
+}
 
-//   // Get File Preview
-//   export async function getFilePreview(fileId, type) {
-//     let fileUrl;
+// Get File Preview
+export async function getFilePreview(fileId: string, type: string) {
+  let fileUrl;
 
-//     try {
-//       if (type === "video") {
-//         fileUrl = storage.getFileView(appwriteConfig.storageId, fileId);
-//       } else if (type === "image") {
-//         fileUrl = storage.getFilePreview(
-//           appwriteConfig.storageId,
-//           fileId,
-//           2000,
-//           2000,
-//           "top",
-//           100
-//         );
-//       } else {
-//         throw new Error("Invalid file type");
-//       }
+  try {
+    if (type === "video") {
+      fileUrl = storage.getFileView(appwriteConfig.storageId, fileId);
+    } else if (type === "image") {
+      fileUrl = storage.getFilePreview(
+        appwriteConfig.storageId,
+        fileId,
+        2000,
+        2000,
+        "top",
+        100
+      );
+    } else {
+      throw new Error("Invalid file type");
+    }
 
-//       if (!fileUrl) throw Error;
+    if (!fileUrl) throw Error;
 
-//       return fileUrl;
-//     } catch (error) {
-//       throw new Error(error);
-//     }
-//   }
+    return fileUrl;
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 //   // Create Video Post
-//   export async function createVideoPost(form) {
-//     try {
-//       const [thumbnailUrl, videoUrl] = await Promise.all([
-//         uploadFile(form.thumbnail, "image"),
-//         uploadFile(form.video, "video"),
-//       ]);
+export async function createVideoPost(form: {
+  thumbnail: any;
+  video: any;
+  title: any;
+  prompt: any;
+  userId: any;
+}) {
+  try {
+    const [thumbnailUrl, videoUrl] = await Promise.all([
+      uploadFile(form.thumbnail, "image"),
+      uploadFile(form.video, "video"),
+    ]);
 
-//       const newPost = await databases.createDocument(
-//         appwriteConfig.databaseId,
-//         appwriteConfig.videoCollectionId,
-//         ID.unique(),
-//         {
-//           title: form.title,
-//           thumbnail: thumbnailUrl,
-//           video: videoUrl,
-//           prompt: form.prompt,
-//           creator: form.userId,
-//         }
-//       );
+    const newPost = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId,
+      ID.unique(),
+      {
+        title: form.title,
+        thumbnail: thumbnailUrl,
+        video: videoUrl,
+        prompt: form.prompt,
+        creator: form.userId,
+      }
+    );
 
-//       return newPost;
-//     } catch (error) {
-//       throw new Error(error);
-//     }
-//   }
+    return newPost;
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 //   // Get video posts created by user
-//   export async function getUserPosts(userId) {
-//     try {
-//       const posts = await databases.listDocuments(
-//         appwriteConfig.databaseId,
-//         appwriteConfig.videoCollectionId,
-//         [Query.equal("creator", userId)]
-//       );
+export async function getUserPosts(
+  userId: string | number | boolean | QueryTypesList
+) {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId,
+      [Query.equal("creator", userId)]
+    );
 
-//       return posts.documents;
-//     } catch (error) {
-//       throw new Error(error);
-//     }
-//   }
+    return posts.documents;
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 //   // Get video posts that matches search query
-//   export async function searchPosts(query) {
-//     try {
-//       const posts = await databases.listDocuments(
-//         appwriteConfig.databaseId,
-//         appwriteConfig.videoCollectionId,
-//         [Query.search("title", query)]
-//       );
+export async function searchPosts(
+  query: string
+): Promise<Models.Document[] | undefined> {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId,
+      [Query.search("title", query)]
+    );
 
-//       if (!posts) throw new Error("Something went wrong");
+    if (!posts) throw new Error("Something went wrong");
 
-//       return posts.documents;
-//     } catch (error) {
-//       throw new Error(error);
-//     }
-//   }
+    return posts.documents;
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
+}

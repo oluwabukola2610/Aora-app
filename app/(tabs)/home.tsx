@@ -1,5 +1,5 @@
 import { View, Text, FlatList, Image, RefreshControl } from "react-native";
-import React, {  useState } from "react";
+import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "@/constants";
 import CustomSearch from "@/components/customs/CustomSearch";
@@ -9,11 +9,13 @@ import { router } from "expo-router";
 import { getAllPosts, getLatestPosts } from "@/components/helper/Appwrite";
 import useAppwrite from "@/components/helper/useAppwrite";
 import VideoCard from "@/components/customs/VideoCard";
+import { useGlobalContext } from "@/context/GlobalProvider";
 const Home = () => {
   const { Data: posts, refetch } = useAppwrite(getAllPosts);
   const { Data: latestPost } = useAppwrite(getLatestPosts);
-
   const [refreshing, setRefecting] = useState(false);
+  const { user } = useGlobalContext();
+
   const onrefesh = async () => {
     setRefecting(true);
     await refetch();
@@ -24,9 +26,7 @@ const Home = () => {
       <FlatList
         data={posts}
         keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => (
-         <VideoCard Item={item}/>
-        )}
+        renderItem={({ item }) => <VideoCard Item={item} />}
         ListHeaderComponent={() => (
           <View className="flex my-6 px-4 space-y-6">
             <View className="flex justify-between items-start flex-row mb-6">
@@ -35,7 +35,7 @@ const Home = () => {
                   Welcome Back
                 </Text>
                 <Text className="text-2xl font-psemibold text-white">
-                  JSMastery
+                  {user.username}
                 </Text>
               </View>
 

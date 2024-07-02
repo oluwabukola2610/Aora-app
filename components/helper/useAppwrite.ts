@@ -8,7 +8,7 @@ export interface Post {
   video: string;
 }
 const useAppwrite = (fn: () => any) => {
-  const [Data, setData] = useState<Post[]>([]);
+  const [Data, setData] = useState<Post[]>();
   const [loading, setIsloading] = useState(false);
   const fetchData = async () => {
     setIsloading(true);

@@ -10,7 +10,8 @@ import React, {
 interface GlobalContextType {
   isLogged: boolean;
   user: any;
-  // setUser: React.Dispatch<React.SetStateAction<any>>;
+  setUser: React.Dispatch<React.SetStateAction<any>>;
+  setIsLogged: React.Dispatch<React.SetStateAction<any>>;
   loading: boolean;
 }
 
@@ -53,7 +54,9 @@ const GlobalProvider = ({ children }: { children: ReactNode }) => {
       value={{
         isLogged,
         user,
+        setIsLogged,
         loading,
+        setUser,
       }}
     >
       {children}

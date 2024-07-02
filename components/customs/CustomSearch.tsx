@@ -3,9 +3,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, usePathname } from "expo-router";
 import { useState } from "react";
 
-const CustomSearch = () => {
+type CustomSearchProps = {
+  initialQuery?: string | undefined;
+  refetch?: () => void;
+};
+
+const CustomSearch = ({ initialQuery }: CustomSearchProps) => {
   const pathname = usePathname();
-  const [searchquery, setSearchquery] = useState();
+  const [searchquery, setSearchquery] = useState(initialQuery || "");
+
   return (
     <View className="bg-black-100 h-14 px-4 border-black-200 rounded-2xl w-full border focus:border-secondary flex items-center flex-row">
       <TextInput
